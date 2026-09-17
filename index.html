@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Food in Flight</title>
+<meta name="theme-color" content="#2D6A4F">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Side menu -->
+  <div class="side-menu-overlay" id="side-menu-overlay"></div>
+  <div class="side-menu" id="side-menu">
+    <div class="greeting">
+      Good Morning,<br>
+      <span class="user">user123</span>
+    </div>
+    <a href="#" data-close-menu>Preferences</a>
+    <a href="#" data-close-menu>Account</a>
+    <a href="#" data-close-menu>Notifications</a>
+    <a href="#" data-close-menu>Log in / Sign up</a>
+  </div>
+
+  <!-- SCREEN: Home / Store Select -->
+  <section class="screen active" id="screen-home">
+    <div class="topbar">
+      <button class="icon-btn" data-open-menu aria-label="Menu">☰</button>
+      <input class="search" placeholder="Search stores...">
+      <button class="icon-btn" data-open-cart aria-label="Cart">🛒<span class="cart-count" style="display:none;"></span></button>
+    </div>
+    <div class="store-grid" id="store-grid"></div>
+  </section>
+
+  <!-- SCREEN: Department Selection -->
+  <section class="screen" id="screen-department">
+    <div class="topbar">
+      <button class="icon-btn" data-back aria-label="Back">←</button>
+      <div class="topbar-title" id="dept-store-title">Store</div>
+      <button class="icon-btn" data-open-cart aria-label="Cart">🛒<span class="cart-count" style="display:none;"></span></button>
+    </div>
+    <div class="store-subline">
+      <span class="distance">2.3 mi away</span>
+      <span>est delivery time: <span class="eta-value">10–15 min.</span></span>
+    </div>
+    <div class="dept-list" id="dept-list"></div>
+  </section>
+
+  <!-- SCREEN: Product Selection -->
+  <section class="screen" id="screen-products">
+    <div class="topbar">
+      <button class="icon-btn" data-back aria-label="Back">←</button>
+      <div class="topbar-title" id="product-store-title">Store</div>
+      <button class="icon-btn" data-open-cart aria-label="Cart">🛒<span class="cart-count" style="display:none;"></span></button>
+    </div>
+    <div class="store-subline">
+      <span class="distance">2.3 mi away</span>
+      <span>est delivery time: <span class="eta-value">10–15 min.</span></span>
+    </div>
+    <div class="dept-pill" style="margin-bottom:16px; display:flex; align-items:center; cursor:default;">
+      <span id="product-dept-title" style="font-family:'Fredoka',sans-serif;font-weight:600;font-size:20px;text-decoration:underline;">Department</span>
+    </div>
+    <div class="product-grid" id="product-grid"></div>
+  </section>
+
+  <!-- SCREEN: Cart -->
+  <section class="screen" id="screen-cart">
+    <div class="topbar">
+      <button class="icon-btn" data-back aria-label="Back">←</button>
+      <div class="topbar-title">Your Cart</div>
+      <span style="width:20px;"></span>
+    </div>
+    <div id="cart-list"></div>
+    <div id="cart-summary" style="margin-top:10px;">
+      <div class="divider"></div>
+      <div class="summary-row"><span>Subtotal</span><span class="val" id="cart-subtotal">$0.00</span></div>
+      <div class="summary-row"><span>Drone Delivery Fee</span><span class="val">$2.50</span></div>
+      <div class="summary-row total"><span>Total</span><span class="val" id="cart-total">$0.00</span></div>
+    </div>
+    <button class="btn-primary" id="checkout-btn" style="margin-top:24px;">Proceed to Checkout</button>
+  </section>
+
+  <!-- SCREEN: Delivery Details -->
+  <section class="screen" id="screen-delivery">
+    <div class="topbar">
+      <button class="icon-btn" data-back aria-label="Back">←</button>
+      <div class="topbar-title">Delivery Details</div>
+      <span style="width:20px;"></span>
+    </div>
+    <p class="section-heading">Delivery Address</p>
+    <input class="input-pill" value="123 Main St, Charleston, SC">
+    <p class="section-heading">Select Drop Zone</p>
+    <div class="map-box"><span id="map-pin-label">📍 Front Porch</span></div>
+    <div class="option-row">
+      <button class="option-pill zone-pill selected" data-zone="Front Porch">Front Porch</button>
+      <button class="option-pill zone-pill" data-zone="Backyard">Backyard</button>
+      <button class="option-pill zone-pill" data-zone="Side Door">Side Door</button>
+    </div>
+    <p class="section-heading">Delivery Notes</p>
+    <textarea class="input-block" placeholder="Optional notes for the drone operator..."></textarea>
+    <button class="btn-primary" id="continue-btn">Continue</button>
+  </section>
+
+  <!-- SCREEN: Checkout Confirmation -->
+  <section class="screen" id="screen-checkout">
+    <div class="topbar">
+      <button class="icon-btn" data-back aria-label="Back">←</button>
+      <div class="topbar-title">Review &amp; Confirm</div>
+      <span style="width:20px;"></span>
+    </div>
+    <p class="section-heading">Order Summary</p>
+    <div class="card">
+      <p id="checkout-items">0 items · Store</p>
+      <p id="checkout-address">Delivery · Front Porch</p>
+      <p style="display:flex; justify-content:space-between; font-weight:600; margin-top:10px;">
+        <span>Total</span><span id="checkout-total" style="color:var(--green);">$0.00</span>
+      </p>
+    </div>
+    <p class="section-heading">Confirmation Method</p>
+    <div class="option-row">
+      <button class="option-pill method-pill selected" data-method="Photo">Photo</button>
+      <button class="option-pill method-pill" data-method="QR Code">QR Code</button>
+      <button class="option-pill method-pill" data-method="PIN">PIN</button>
+    </div>
+    <p class="section-heading">Estimated Delivery</p>
+    <p style="color:var(--accent); font-family:'Fredoka',sans-serif; font-weight:600; font-size:19px; margin-bottom:24px;">~18 minutes</p>
+    <button class="btn-primary" id="place-order-btn">Place Order</button>
+  </section>
+
+  <!-- SCREEN: Live Tracking -->
+  <section class="screen" id="screen-tracking" style="padding-top:0;">
+    <div class="tracking-map"><div class="drone-dot"></div></div>
+    <div class="status-card">
+      <div class="status-title"><span class="status-dot"></span><span id="status-title">In Flight</span></div>
+      <div class="status-sub" id="status-sub">Drone is en route to your location.</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+        <span class="status-eta" id="status-eta">Arriving in 10 min</span>
+        <span style="background:var(--cream); border-radius:14px; padding:4px 12px; font-size:13px; font-weight:600;" id="status-battery">91%</span>
+      </div>
+    </div>
+    <div class="order-recap" style="padding: 0 25px;">
+      <div class="oid" id="order-id">Order #FIF-0000</div>
+      <div id="tracking-address" style="font-size:13px; margin-top:4px;">Store · Zone</div>
+      <div class="notify-row">
+        <span>Notify me on arrival</span>
+        <button class="toggle on" id="notify-toggle"></button>
+      </div>
+      <button class="btn-danger" id="abort-btn">Emergency Abort / Return</button>
+    </div>
+  </section>
+
+  <!-- SCREEN: Delivery Confirmed -->
+  <section class="screen" id="screen-confirmed">
+    <div class="topbar" style="justify-content:center;">
+      <div class="topbar-title">Delivery Complete!</div>
+    </div>
+    <div class="success-circle">✓</div>
+    <div class="confirmed-msg">
+      <div class="headline">Your package has arrived</div>
+      <div class="time" id="confirmed-time">Delivered</div>
+    </div>
+    <div class="photo-box">Delivery Photo</div>
+    <div class="rate-card">
+      <p class="card-heading">Rate your delivery</p>
+      <div class="stars">
+        <button></button><button></button><button></button><button></button><button></button>
+      </div>
+    </div>
+    <button class="btn-primary" id="done-btn">Done</button>
+  </section>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <button id="nav-home" data-go-home>🏠</button>
+    <button>✏️</button>
+    <button>♡</button>
+    <button>⚙️</button>
+  </nav>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
