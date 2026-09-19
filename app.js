@@ -1,15 +1,13 @@
 // ---------- Data ----------
-const FIGMA_ASSETS = "https://www.figma.com/api/mcp/asset/962e3bf6-97ec-4dcf-957e-293f6075e953";
-
 const STORES = [
-  { id: "lowes", name: "Lowes Foods", img: `${FIGMA_ASSETS}/42204.png` },
-  { id: "berts", name: "Bert's Market", img: null },
-  { id: "publix", name: "Publix", img: null },
-  { id: "harristeeter", name: "Harris Teeter", img: `${FIGMA_ASSETS}/9e3fb.png` },
-  { id: "traderjoes", name: "Trader Joe's", img: `${FIGMA_ASSETS}/c468b.png` },
-  { id: "foodlion", name: "Food Lion", img: null },
-  { id: "cvs", name: "CVS Pharmacy", img: `${FIGMA_ASSETS}/9ebea.png` },
-  { id: "walgreens", name: "Walgreens", img: `${FIGMA_ASSETS}/8cfaa.png` },
+  { id: "lowes", name: "Lowes Foods", img: "assets/Lowesfoods.png" },
+  { id: "berts", name: "Bert's Market", img: "assets/logo.png" },
+  { id: "publix", name: "Publix", img: "assets/Publix-Logo.wine.png" },
+  { id: "harristeeter", name: "Harris Teeter", img: "assets/PJNOAWQ46VBUPHTVQI3KIURUFU.png" },
+  { id: "traderjoes", name: "Trader Joe's", img: "assets/Trader-Joes-Symbol.png" },
+  { id: "foodlion", name: "Food Lion", img: "assets/Food_Lion_logo.png" },
+  { id: "cvs", name: "CVS Pharmacy", img: "assets/CVS-Pharmacy-Logo.png" },
+  { id: "walgreens", name: "Walgreens", img: "assets/1485908_WAG_Signature_logo_RGB_750x208.png" },
 ];
 
 const DEPARTMENTS = [
@@ -17,8 +15,13 @@ const DEPARTMENTS = [
   "Seafood", "Canned Goods", "Chips", "Pasta and Rice", "Personal Care",
 ];
 
-const PRODUCT_IMG = `${FIGMA_ASSETS}/... `; // placeholder, replaced below
 const CARROT_IMG_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e8a35c'/%3E%3C/svg%3E";
+
+const SAVED_LISTS = [
+  { id: "weekly", name: "Weekly Essentials", items: ["Milk", "Eggs", "Bread", "Bananas", "Coffee"] },
+  { id: "party", name: "Party Supplies", items: ["Chips", "Soda", "Ice", "Paper Plates"] },
+  { id: "quick", name: "Quick Reorder", items: ["Yesterday's Order (3 items)"] },
+];
 
 function makeProducts(deptName) {
   const items = [];
@@ -39,7 +42,9 @@ const state = {
   selectedStore: null,
   selectedDept: null,
   products: [],
-  cart: {}, // id -> {product, qty}
+  cart: {},
+  favStores: new Set(),
+  favProducts: {}, // id -> product
   selectedZone: "Front Porch",
   selectedConfirmMethod: "Photo",
   trackingTimer: null,
@@ -61,8 +66,8 @@ function goBack() {
 }
 
 function updateNavActive(name) {
-  document.querySelectorAll(".bottom-nav button").forEach(b => b.classList.remove("active"));
-  const map = { home: "nav-home", cart: "nav-cart" };
+  document.querySelectorAll(".site-nav button").forEach(b => b.classList.remove("active"));
+  const map = { home: "nav-home", lists: "nav-lists", favorites: "nav-favorites" };
   const id = map[name];
   if (id) document.getElementById(id)?.classList.add("active");
 }
@@ -71,17 +76,27 @@ function updateNavActive(name) {
 function renderStores() {
   const grid = document.getElementById("store-grid");
   grid.innerHTML = "";
-  STORES.forEach(store => {
-    const btn = document.createElement("button");
-    btn.className = "store-card";
-    btn.onclick = () => selectStore(store);
-    if (store.img) {
-      btn.innerHTML = `<img src="${store.img}" alt="${store.name}">`;
-    } else {
-      btn.innerHTML = `<div class="fallback-name">${store.name}</div>`;
-    }
-    grid.appendChild(btn);
-  });
+  STORES.forEach(store => grid.appendChild(buildStoreCard(store)));
+}
+
+function buildStoreCard(store) {
+  const card = document.createElement("div");
+  card.className = "store-card";
+  const isFav = state.favStores.has(store.id);
+  card.innerHTML = `
+    <button class="fav-toggle ${isFav ? 'favorited' : ''}" data-store-id="${store.id}">${isFav ? "♥" : "♡"}</button>
+    ${store.img ? `<img src="${store.img}" alt="${store.name}">` : `<div class="fallback-name">${store.name}</div>`}
+  `;
+  card.querySelector("img, .fallback-name")?.addEventListener("click", () => selectStore(store));
+  card.querySelector(".fav-toggle").onclick = (e) => { e.stopPropagation(); toggleFavStore(store); };
+  return card;
+}
+
+function toggleFavStore(store) {
+  if (state.favStores.has(store.id)) state.favStores.delete(store.id);
+  else state.favStores.add(store.id);
+  renderStores();
+  if (document.getElementById("screen-favorites").classList.contains("active")) renderFavorites();
 }
 
 function selectStore(store) {
@@ -117,19 +132,31 @@ function selectDept(dept) {
 function renderProducts() {
   const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
-  state.products.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    const inCart = !!state.cart[p.id];
-    card.innerHTML = `
-      <button class="add-btn ${inCart ? 'added' : ''}" data-id="${p.id}">${inCart ? "✓" : "+"}</button>
-      <img src="${p.img}" alt="">
-      <div class="product-name">${p.name}</div>
-      <div class="product-price">$${p.price}</div>
-    `;
-    card.querySelector(".add-btn").onclick = (e) => toggleCartItem(p, e.currentTarget);
-    grid.appendChild(card);
-  });
+  state.products.forEach(p => grid.appendChild(buildProductCard(p)));
+}
+
+function buildProductCard(p) {
+  const card = document.createElement("div");
+  card.className = "product-card";
+  const inCart = !!state.cart[p.id];
+  const isFav = !!state.favProducts[p.id];
+  card.innerHTML = `
+    <button class="fav-toggle-product ${isFav ? 'favorited' : ''}" data-id="${p.id}">${isFav ? "♥" : "♡"}</button>
+    <button class="add-btn ${inCart ? 'added' : ''}" data-id="${p.id}">${inCart ? "✓" : "+"}</button>
+    <img src="${p.img}" alt="">
+    <div class="product-name">${p.name}</div>
+    <div class="product-price">$${p.price}</div>
+  `;
+  card.querySelector(".add-btn").onclick = (e) => toggleCartItem(p, e.currentTarget);
+  card.querySelector(".fav-toggle-product").onclick = () => toggleFavProduct(p);
+  return card;
+}
+
+function toggleFavProduct(p) {
+  if (state.favProducts[p.id]) delete state.favProducts[p.id];
+  else state.favProducts[p.id] = p;
+  renderProducts();
+  if (document.getElementById("screen-favorites").classList.contains("active")) renderFavorites();
 }
 
 function toggleCartItem(product, btn) {
@@ -149,7 +176,7 @@ function updateCartBadge() {
   const count = Object.keys(state.cart).length;
   document.querySelectorAll(".cart-count").forEach(el => {
     el.textContent = count;
-    el.style.display = count > 0 ? "inline-flex" : "none";
+    el.style.display = count > 0 ? "flex" : "none";
   });
 }
 
@@ -157,14 +184,13 @@ function updateCartBadge() {
 function renderCart() {
   const list = document.getElementById("cart-list");
   const items = Object.values(state.cart);
+  const summary = document.getElementById("cart-summary");
   if (items.length === 0) {
     list.innerHTML = `<div class="cart-empty">Your cart is empty.<br>Go add some groceries!</div>`;
-    document.getElementById("cart-summary").style.display = "none";
-    document.getElementById("checkout-btn").style.display = "none";
+    summary.style.display = "none";
     return;
   }
-  document.getElementById("cart-summary").style.display = "block";
-  document.getElementById("checkout-btn").style.display = "block";
+  summary.style.display = "block";
   list.innerHTML = "";
   let subtotal = 0;
   items.forEach(({ product, qty }) => {
@@ -290,23 +316,72 @@ function setRating(n) {
   });
 }
 
-// ---------- Side menu ----------
-function toggleSideMenu(open) {
-  document.getElementById("side-menu").classList.toggle("open", open);
-  document.getElementById("side-menu-overlay").classList.toggle("open", open);
+// ---------- Favorites screen ----------
+function renderFavorites() {
+  const storeWrap = document.getElementById("favorites-stores");
+  const favStoreList = STORES.filter(s => state.favStores.has(s.id));
+  if (favStoreList.length === 0) {
+    storeWrap.innerHTML = `<div class="empty-state">No favorite stores yet — tap the heart on any store to save it here.</div>`;
+  } else {
+    storeWrap.innerHTML = "";
+    favStoreList.forEach(s => storeWrap.appendChild(buildStoreCard(s)));
+  }
+
+  const productWrap = document.getElementById("favorites-products");
+  const favProductList = Object.values(state.favProducts);
+  if (favProductList.length === 0) {
+    productWrap.innerHTML = `<div class="empty-state">No favorite products yet — tap the heart on any item to save it here.</div>`;
+  } else {
+    productWrap.innerHTML = "";
+    favProductList.forEach(p => productWrap.appendChild(buildProductCard(p)));
+  }
 }
 
-// ---------- Wire up static buttons ----------
+// ---------- Lists screen ----------
+function renderLists() {
+  const grid = document.getElementById("lists-grid");
+  grid.innerHTML = "";
+  SAVED_LISTS.forEach(list => {
+    const card = document.createElement("div");
+    card.className = "list-card";
+    card.innerHTML = `
+      <div class="list-name">${list.name}</div>
+      <div class="list-count">${list.items.length} items</div>
+      <div class="list-items">${list.items.join(", ")}</div>
+      <button class="btn-secondary" style="width:100%;">Add All to Cart</button>
+    `;
+    card.querySelector("button").onclick = () => addListToCart(list);
+    grid.appendChild(card);
+  });
+}
+
+function addListToCart(list) {
+  list.items.forEach((name, i) => {
+    const id = `${list.id}-${i}`;
+    const product = { id, name, price: (Math.random() * 4 + 1.5).toFixed(2), img: CARROT_IMG_FALLBACK };
+    state.cart[id] = { product, qty: 1 };
+  });
+  updateCartBadge();
+  openCart();
+}
+
+// ---------- Wire up ----------
 document.addEventListener("DOMContentLoaded", () => {
   renderStores();
   updateCartBadge();
 
   document.querySelectorAll("[data-back]").forEach(btn => btn.onclick = goBack);
-  document.querySelectorAll("[data-open-menu]").forEach(btn => btn.onclick = () => toggleSideMenu(true));
-  document.querySelectorAll("[data-close-menu]").forEach(btn => btn.onclick = () => toggleSideMenu(false));
-  document.getElementById("side-menu-overlay").onclick = () => toggleSideMenu(false);
   document.querySelectorAll("[data-open-cart]").forEach(btn => btn.onclick = openCart);
   document.querySelectorAll("[data-go-home]").forEach(btn => btn.onclick = goHome);
+
+  document.querySelectorAll("[data-nav]").forEach(btn => {
+    btn.onclick = () => {
+      const target = btn.dataset.nav;
+      if (target === "favorites") renderFavorites();
+      if (target === "lists") renderLists();
+      showScreen(target);
+    };
+  });
 
   document.querySelectorAll(".zone-pill").forEach(btn => {
     btn.onclick = () => selectZone(btn.dataset.zone, btn);
@@ -317,6 +392,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".stars button").forEach((btn, i) => {
     btn.onclick = () => setRating(i + 1);
   });
+  document.querySelectorAll("[data-setting-toggle]").forEach(btn => {
+    btn.onclick = () => btn.classList.toggle("on");
+  });
 
   document.getElementById("checkout-btn").onclick = goToCheckout;
   document.getElementById("continue-btn").onclick = goToCheckout;
@@ -325,7 +403,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("done-btn").onclick = goHome;
   document.getElementById("notify-toggle").onclick = (e) => e.currentTarget.classList.toggle("on");
 
-  // Register service worker for installability
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {});
   }
