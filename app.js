@@ -219,12 +219,74 @@ function openCart() {
   showScreen("cart");
 }
 
-// ---------- Delivery details ----------
-function selectZone(zone, btn) {
+// ---------- Delivery details: interactive drop-point map ----------
+const DROP_MAP_RADIUS_PX = 140; // half of .drop-map-circle width, minus a small margin
+const DROP_MAP_MARGIN = 14;
+
+function placeDropPin(x, y) {
+  const pin = document.getElementById("drop-map-pin");
+  pin.style.left = `calc(50% + ${x}px)`;
+  pin.style.top = `calc(50% + ${y}px)`;
+  state.dropPoint = { x, y };
+}
+
+function describeDropPoint(x, y) {
+  const maxR = DROP_MAP_RADIUS_PX - DROP_MAP_MARGIN;
+  const dist = Math.sqrt(x * x + y * y);
+  if (dist < 18) return "Right at the front door";
+  const pct = Math.min(100, Math.round((dist / maxR) * 100));
+  let angle = Math.atan2(-y, x) * (180 / Math.PI); // 0=E, 90=N, 180/-180=W, -90=S
+  if (angle < 0) angle += 360;
+  const dirs = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
+  const dir = dirs[Math.round(angle / 45) % 8];
+  return `Custom point · ${pct}% out, ${dir} side of house`;
+}
+
+function selectCustomDropPoint(x, y) {
+  placeDropPin(x, y);
+  document.querySelectorAll(".zone-pill").forEach(b => b.classList.remove("selected"));
+  const label = describeDropPoint(x, y);
+  state.selectedZone = label;
+  document.getElementById("drop-zone-label").textContent = `📍 ${label}`;
+}
+
+function selectPresetZone(zone, x, y, btn) {
   state.selectedZone = zone;
+  placeDropPin(x, y);
   document.querySelectorAll(".zone-pill").forEach(b => b.classList.remove("selected"));
   btn.classList.add("selected");
-  document.getElementById("map-pin-label").textContent = `📍 ${zone}`;
+  document.getElementById("drop-zone-label").textContent = `📍 ${zone}`;
+}
+
+function initDropMap() {
+  const circle = document.getElementById("drop-map-circle");
+  if (!circle) return;
+
+  function handlePoint(clientX, clientY) {
+    const rect = circle.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    let x = clientX - rect.left - cx;
+    let y = clientY - rect.top - cy;
+    const maxR = DROP_MAP_RADIUS_PX - DROP_MAP_MARGIN;
+    const dist = Math.sqrt(x * x + y * y);
+    if (dist > maxR) {
+      const scale = maxR / dist;
+      x *= scale;
+      y *= scale;
+    }
+    selectCustomDropPoint(Math.round(x), Math.round(y));
+  }
+
+  circle.addEventListener("click", (e) => handlePoint(e.clientX, e.clientY));
+
+  let dragging = false;
+  circle.addEventListener("pointerdown", (e) => { dragging = true; handlePoint(e.clientX, e.clientY); });
+  window.addEventListener("pointermove", (e) => { if (dragging) handlePoint(e.clientX, e.clientY); });
+  window.addEventListener("pointerup", () => { dragging = false; });
+
+  // Initialize pin at the default preset (Front Porch)
+  placeDropPin(0, -75);
 }
 
 // ---------- Checkout ----------
@@ -384,8 +446,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelectorAll(".zone-pill").forEach(btn => {
-    btn.onclick = () => selectZone(btn.dataset.zone, btn);
+    btn.onclick = () => selectPresetZone(
+      btn.dataset.zone,
+      parseInt(btn.dataset.x, 10),
+      parseInt(btn.dataset.y, 10),
+      btn
+    );
   });
+  initDropMap();
   document.querySelectorAll(".method-pill").forEach(btn => {
     btn.onclick = () => selectMethod(btn.dataset.method, btn);
   });

@@ -78,20 +78,32 @@
     <h1 class="page-title">Delivery Details</h1>
     <div class="two-col">
       <div>
-        <p class="section-heading">Delivery Address</p>
-        <input class="input-pill" value="123 Main St, Charleston, SC">
-        <p class="section-heading">Select Drop Zone</p>
-        <div class="option-row">
-          <button class="option-pill zone-pill selected" data-zone="Front Porch">Front Porch</button>
-          <button class="option-pill zone-pill" data-zone="Backyard">Backyard</button>
-          <button class="option-pill zone-pill" data-zone="Side Door">Side Door</button>
+        <p class="section-heading">Tap to Set Your Drop Point</p>
+        <p class="map-hint">Drag or tap anywhere within the delivery radius around your address.</p>
+        <div class="drop-map" id="drop-map">
+          <div class="drop-map-circle" id="drop-map-circle">
+            <div class="ring ring-outer"></div>
+            <div class="ring ring-mid"></div>
+            <div class="ring ring-inner"></div>
+            <div class="drop-map-center">🏠</div>
+            <div class="drop-map-pin" id="drop-map-pin">📍</div>
+          </div>
         </div>
-        <p class="section-heading">Delivery Notes</p>
-        <textarea class="input-block" placeholder="Optional notes for the drone operator..."></textarea>
+        <div class="drop-label-row">
+          <span id="drop-zone-label">📍 Front Porch</span>
+          <span class="radius-note">50 ft delivery radius</span>
+        </div>
+        <div class="option-row">
+          <button class="option-pill zone-pill selected" data-zone="Front Porch" data-x="0" data-y="-75">Front Porch</button>
+          <button class="option-pill zone-pill" data-zone="Backyard" data-x="0" data-y="95">Backyard</button>
+          <button class="option-pill zone-pill" data-zone="Side Door" data-x="105" data-y="10">Side Door</button>
+        </div>
       </div>
       <div class="side-panel">
-        <p class="section-heading" style="margin-top:0;">Drop Zone Preview</p>
-        <div class="map-box" style="height:200px; margin-bottom:16px;"><span id="map-pin-label">📍 Front Porch</span></div>
+        <p class="section-heading" style="margin-top:0;">Delivery Address</p>
+        <input class="input-pill" value="123 Main St, Charleston, SC">
+        <p class="section-heading">Delivery Notes</p>
+        <textarea class="input-block" placeholder="Optional notes for the drone operator..."></textarea>
         <button class="btn-primary" id="continue-btn">Continue</button>
       </div>
     </div>
