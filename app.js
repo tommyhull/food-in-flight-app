@@ -464,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.onclick = () => btn.classList.toggle("on");
   });
 
-  document.getElementById("checkout-btn").onclick = goToCheckout;
+  document.getElementById("checkout-btn").onclick = () => showScreen("delivery");
   document.getElementById("continue-btn").onclick = goToCheckout;
   document.getElementById("place-order-btn").onclick = startTracking;
   document.getElementById("abort-btn").onclick = abortDelivery;
