@@ -12,7 +12,6 @@
 <body>
 <div id="app">
 
-  
   <!-- Persistent site header -->
   <header class="site-header">
     <button class="site-logo" data-go-home>Food in Flight</button>
@@ -83,6 +82,21 @@
         <p class="map-hint">Drag or tap anywhere within the delivery radius around your address.</p>
         <div class="drop-map" id="drop-map">
           <div class="drop-map-circle" id="drop-map-circle">
+            <svg class="map-bg" viewBox="0 0 280 280" preserveAspectRatio="xMidYMid slice">
+              <rect x="0" y="0" width="280" height="280" fill="#dfead9"/>
+              <rect x="0" y="0" width="280" height="60" fill="#e7dfc9"/>
+              <rect x="0" y="220" width="280" height="60" fill="#e7dfc9"/>
+              <rect x="0" y="0" width="55" height="280" fill="#e7dfc9"/>
+              <rect x="225" y="0" width="55" height="280" fill="#e7dfc9"/>
+              <rect x="55" y="60" width="170" height="160" fill="#d8e8cf"/>
+              <path d="M0,60 H280 M0,220 H280 M55,0 V280 M225,0 V280" stroke="#c9c2ac" stroke-width="6"/>
+              <path d="M140,220 V150" stroke="#efe9d8" stroke-width="10" stroke-linecap="round"/>
+              <rect x="100" y="95" width="80" height="55" rx="4" fill="#f2ede1" stroke="#c9c2ac" stroke-width="2"/>
+              <rect x="20" y="20" width="26" height="26" rx="3" fill="#c7ddc0"/>
+              <rect x="235" y="235" width="30" height="30" rx="3" fill="#c7ddc0"/>
+              <rect x="20" y="235" width="26" height="26" rx="3" fill="#c7ddc0"/>
+              <rect x="238" y="18" width="26" height="26" rx="3" fill="#c7ddc0"/>
+            </svg>
             <div class="ring ring-outer"></div>
             <div class="ring ring-mid"></div>
             <div class="ring ring-inner"></div>
@@ -141,7 +155,31 @@
   <section class="screen" id="screen-tracking">
     <h1 class="page-title">Tracking Your Delivery</h1>
     <div class="two-col">
-      <div class="tracking-map"><div class="drone-dot"></div></div>
+      <div class="tracking-map">
+        <svg id="route-svg" viewBox="0 0 700 460" preserveAspectRatio="xMidYMid slice">
+          <rect x="0" y="0" width="700" height="460" fill="#dfead9"/>
+          <rect x="0" y="0" width="700" height="70" fill="#e7dfc9"/>
+          <rect x="0" y="390" width="700" height="70" fill="#e7dfc9"/>
+          <rect x="0" y="0" width="90" height="460" fill="#e7dfc9"/>
+          <rect x="610" y="0" width="90" height="460" fill="#e7dfc9"/>
+          <rect x="90" y="70" width="520" height="320" fill="#d8e8cf"/>
+          <path d="M0,70 H700 M0,390 H700 M90,0 V460 M300,0 V460 M480,0 V460 M610,0 V460" stroke="#c9c2ac" stroke-width="7"/>
+          <rect x="30" y="15" width="45" height="40" rx="4" fill="#c7ddc0"/>
+          <rect x="640" y="405" width="45" height="40" rx="4" fill="#c7ddc0"/>
+          <rect x="30" y="405" width="45" height="40" rx="4" fill="#c7ddc0"/>
+          <rect x="640" y="15" width="45" height="40" rx="4" fill="#c7ddc0"/>
+          <path id="route-path" d="M 65,90 C 220,60 260,340 340,300 S 560,120 635,370" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="10 8" stroke-linecap="round" opacity="0.85"/>
+          <g transform="translate(65,90)">
+            <circle r="16" fill="#fff"/>
+            <text x="0" y="6" font-size="18" text-anchor="middle">🏪</text>
+          </g>
+          <g transform="translate(635,370)">
+            <circle r="16" fill="#fff"/>
+            <text x="0" y="6" font-size="18" text-anchor="middle">🏠</text>
+          </g>
+          <circle id="drone-marker" cx="65" cy="90" r="9" fill="var(--accent)" stroke="#fff" stroke-width="2"/>
+        </svg>
+      </div>
       <div class="side-panel">
         <div class="status-card">
           <div class="status-title"><span class="status-dot"></span><span id="status-title">In Flight</span></div>

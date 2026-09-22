@@ -312,11 +312,21 @@ function goToCheckout() {
 
 // ---------- Live tracking ----------
 const TRACKING_STAGES = [
-  { title: "Preparing Order", sub: "Your groceries are being packed for flight.", eta: "Arriving in 18 min", battery: "100%" },
-  { title: "In Flight", sub: "Drone is en route to your location.", eta: "Arriving in 10 min", battery: "91%" },
-  { title: "In Flight", sub: "Drone is en route to your location.", eta: "Arriving in 4 min", battery: "78%" },
-  { title: "Arriving", sub: "Drone is descending to your drop zone.", eta: "Arriving now", battery: "65%" },
+  { title: "Preparing Order", sub: "Your groceries are being packed for flight.", eta: "Arriving in 18 min", battery: "100%", routeProgress: 0 },
+  { title: "In Flight", sub: "Drone is en route to your location.", eta: "Arriving in 10 min", battery: "91%", routeProgress: 0.35 },
+  { title: "In Flight", sub: "Drone is en route to your location.", eta: "Arriving in 4 min", battery: "78%", routeProgress: 0.7 },
+  { title: "Arriving", sub: "Drone is descending to your drop zone.", eta: "Arriving now", battery: "65%", routeProgress: 0.97 },
 ];
+
+function moveDroneAlongRoute(fraction) {
+  const path = document.getElementById("route-path");
+  const marker = document.getElementById("drone-marker");
+  if (!path || !marker) return;
+  const total = path.getTotalLength();
+  const point = path.getPointAtLength(total * fraction);
+  marker.setAttribute("cx", point.x);
+  marker.setAttribute("cy", point.y);
+}
 
 function startTracking() {
   document.getElementById("order-id").textContent = `Order #FIF-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -335,6 +345,7 @@ function startTracking() {
     statusSub.textContent = s.sub;
     statusEta.textContent = s.eta;
     statusBattery.textContent = s.battery;
+    moveDroneAlongRoute(s.routeProgress);
   }
   applyStage();
 

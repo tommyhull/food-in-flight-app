@@ -455,6 +455,13 @@ html, body {
   border-radius: 50%;
   cursor: crosshair;
   touch-action: none;
+  overflow: hidden;
+}
+.map-bg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
 }
 .drop-map-circle .ring {
   position: absolute;
@@ -462,6 +469,7 @@ html, body {
   border: 2px dashed rgba(45,106,79,0.25);
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 1;
 }
 .ring-outer { width: 280px; height: 280px; background: rgba(45,106,79,0.04); }
 .ring-mid   { width: 187px; height: 187px; background: rgba(45,106,79,0.05); }
@@ -540,22 +548,22 @@ html, body {
 
 /* ---------- Live tracking ---------- */
 .tracking-map {
-  background: var(--cream);
   border-radius: var(--radius-lg);
   height: 460px;
+  overflow: hidden;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.drone-dot {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--accent);
-  animation: pulse 1.4s infinite ease-in-out;
+.tracking-map svg { width: 100%; height: 100%; display: block; }
+#route-path {
+  stroke-dashoffset: 0;
+  animation: routeFlow 1.2s linear infinite;
 }
-@keyframes pulse {
-  0%,100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.6; }
+@keyframes routeFlow {
+  to { stroke-dashoffset: -18; }
+}
+#drone-marker {
+  transition: cx 2.3s ease-in-out, cy 2.3s ease-in-out;
+  filter: drop-shadow(0 0 5px rgba(244,132,95,0.9));
 }
 .status-card {
   background: #fff;
